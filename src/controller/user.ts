@@ -5,8 +5,9 @@ import jwt from "jsonwebtoken";
 
 export const signup = async (req: Request, res: Response): Promise<void> => {
   try {
-    const { name, username, password } = req.body;
-    if (!name || !username || !password) {
+    const { email, username, password } = req.body;
+    console.log(email, username, password);
+    if (!email || !username || !password) {
       res.status(400).json({ error: "All fields are required" });
       return;
     }
@@ -18,11 +19,13 @@ export const signup = async (req: Request, res: Response): Promise<void> => {
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
-    const user = new User({ name, username, password: hashedPassword });
+    const user = new User({ email, username, password: hashedPassword });
     await user.save();
 
     const userResponse = user.toObject();
     delete userResponse.password;
+
+    console.log(userResponse);
 
     res.status(201).json(userResponse);
   } catch (error) {
@@ -62,7 +65,7 @@ export const signin = async (req: Request, res: Response): Promise<void> => {
       httpOnly: true,
       sameSite: "lax",
     });
-    res.status(200).json({ message: "Login successful" });
+    res.status(200).json({ message: "Login successful", token });
   } catch (error) {
     console.error("Error signing in:", error);
     res.status(500).json({ error: "Internal server error" });
@@ -74,7 +77,7 @@ export const getUserProfile = async (
   res: Response
 ): Promise<any> => {
   try {
-    const userId = req.params.userId;
+    const userId = req.user?.userId as string;
     if (!userId) {
       return res.status(400).json({ error: "UserId is required" });
     }

@@ -6,6 +6,6 @@ const userRouter: Router = express.Router();
 
 userRouter.post("/user/signup", signup);
 userRouter.post("/user/signin", signin);
-userRouter.get("/user/:userId", isAuth, getUserProfile);
+userRouter.get("/user/profile", isAuth, getUserProfile);
 
 export { userRouter };

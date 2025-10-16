@@ -4,16 +4,30 @@ import { Game } from "../models/Game";
 import { Chess } from "chess.js";
 
 class GameService {
-  async addToQueue(playerId: string, ws: WebSocket, wss: WebSocketServer) {
+  async addToQueue(
+    { userId }: { userId: string },
+    ws: WebSocket,
+    wss: WebSocketServer
+  ) {
     const queueKey = "gameQueue";
+    console.log("gamequeue");
+    console.log("userid", userId);
 
-    await redis.rPush(queueKey, playerId);
+    const queue = await redis.lRange(queueKey, 0, -1);
+    if (queue.includes(userId)) {
+      console.log("User already in queue");
+      return;
+    }
+
+    await redis.rPush(queueKey, userId);
     const players = await redis.lLen(queueKey);
-
+    console.log(players);
     if (players >= 2) {
       const popped = await redis.lPopCount(queueKey, 2);
       if (!popped || popped.length < 2) return;
       const [white, black] = popped;
+      console.log("white", white);
+      console.log("black", black);
 
       const game = await Game.create({
         white,
@@ -22,6 +36,10 @@ class GameService {
         moves: [],
       });
 
+      console.log({
+        event: "gameStart",
+        data: { gameId: game._id, white, black, fen: game.fen },
+      });
       this.broadcast(wss, {
         event: "gameStart",
         data: { gameId: game._id, white, black, fen: game.fen },
