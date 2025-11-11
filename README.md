@@ -1,6 +1,6 @@
 # Real-Time Chess Server
 
-This repository contains the backend WebSocket server for a real-time multiplayer Chess application.  
+This is a backend WebSocket server for a real-time multiplayer Chess application.  
 It manages live matchmaking, player pairing, and in-game state synchronization using WebSockets, MongoDB, and Redis to ensure smooth, low-latency gameplay.
 
 ## Tech Stack
