@@ -2,12 +2,12 @@ import express from "express";
 import http from "http";
 import { connectMongo } from "./config/mongo";
 import { connectRedis } from "./config/redis";
-import { userRouter } from "./router";
+import { matchmakingRouter, userRouter } from "./router";
 import cookieParser from "cookie-parser";
 import dotenv from "dotenv";
 import { WebSocketServer } from "ws";
-import { gameSocket } from "./sockets/gameSocket";
 import cors from "cors";
+import { initWS } from "./ws";
 dotenv.config();
 
 const app = express();
@@ -27,9 +27,14 @@ app.use(
     credentials: true,
   })
 );
-app.use("/api/v1", userRouter);
+app.use("/api/health", (req, res) => {
+  const uptime = process.uptime();
+  return res.status(200).send({ uptime, message: "Server is healthy" });
+});
+app.use("/api/v1/user", userRouter);
+app.use("/api/v1/matchmaking", matchmakingRouter);
 
-gameSocket(wss);
+initWS(wss);
 server.listen(3000, () =>
   console.log("WS server running on ws://localhost:3000")
 );

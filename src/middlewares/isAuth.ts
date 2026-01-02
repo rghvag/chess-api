@@ -1,9 +1,6 @@
 import { Request, Response, NextFunction } from "express";
 import jwt, { JwtPayload, TokenExpiredError } from "jsonwebtoken";
-
-interface AuthUser extends JwtPayload {
-  userId: string;
-}
+import { AuthUser } from "../types";
 
 declare module "express-serve-static-core" {
   interface Request {

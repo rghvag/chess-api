@@ -3,19 +3,23 @@ import bcrypt from "bcrypt";
 import { User } from "../models/User";
 import jwt from "jsonwebtoken";
 
-export const signup = async (req: Request, res: Response): Promise<void> => {
+export const signup = async (
+  req: Request,
+  res: Response
+): Promise<Response> => {
   try {
     const { email, username, password } = req.body;
     console.log(email, username, password);
+    //test email & username later
     if (!email || !username || !password) {
-      res.status(400).json({ error: "All fields are required" });
-      return;
+      return res
+        .status(400)
+        .json({ error: `All fields are required : email, username, password` });
     }
 
     const existingUser = await User.findOne({ username });
     if (existingUser) {
-      res.status(409).json({ error: "Username already taken" });
-      return;
+      return res.status(409).json({ error: "Username already taken" });
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
@@ -25,12 +29,10 @@ export const signup = async (req: Request, res: Response): Promise<void> => {
     const userResponse = user.toObject();
     delete userResponse.password;
 
-    console.log(userResponse);
-
-    res.status(201).json(userResponse);
+    return res.status(201).json(userResponse);
   } catch (error) {
     console.error("Error creating user:", error);
-    res.status(500).json({ error: "Internal server error" });
+    return res.status(500).json({ error: "Internal server error" });
   }
 };
 

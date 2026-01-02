@@ -12,17 +12,31 @@ const gameSchema = new mongoose.Schema(
       ref: "User",
       required: true,
     },
-    fen: { type: String, required: true },
     result: {
       type: String,
-      enum: ["white", "black", "draw", "resign", "timeout", null],
+      enum: ["white", "black", "draw", null],
       default: null,
     },
-
-    moves: [{ type: String }], // PGN / SAN notation
-
-    startedAt: { type: Date, default: Date.now },
-    endedAt: { type: Date },
+    result_reason: {
+      type: String,
+      enum: [
+        "checkmate",
+        "resignation",
+        "timeout",
+        "stalemate",
+        "agreement",
+        "insufficient_material",
+        null,
+      ],
+      default: "timeout",
+    },
+    time_control: {
+      type: String,
+    },
+    fen: { type: String, required: true, default: "start" },
+    // moves:
+    started_at: { type: Date, default: Date.now },
+    ended_at: { type: Date },
   },
   { timestamps: true }
 );

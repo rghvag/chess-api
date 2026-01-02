@@ -4,8 +4,8 @@ import { getUserProfile, signin, signup } from "../controller";
 
 const userRouter: Router = express.Router();
 
-userRouter.post("/user/signup", signup);
-userRouter.post("/user/signin", signin);
-userRouter.get("/user/profile", isAuth, getUserProfile);
+userRouter.post("/signup", signup);
+userRouter.post("/signin", signin);
+userRouter.get("/profile", isAuth, getUserProfile);
 
 export { userRouter };
