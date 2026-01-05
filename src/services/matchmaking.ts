@@ -2,6 +2,9 @@ import { redis } from "../config/redis";
 import { Game } from "../models/Game";
 import { emitGameStarted } from "../ws/emitters";
 
+export const DEFAULT_POSITION =
+  "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
+
 export const makeMatch = async () => {
   const queueKey = process.env.MATCHMAKING_QUEUE_KEY || "";
 
@@ -18,8 +21,14 @@ export const makeMatch = async () => {
     const game = await Game.create({
       white,
       black,
-      time_control: "5+0",//for now
+      time_control: "5+0", //for now
       started_at: new Date(),
+      clock: {
+        whiteTimeMs: 5 * 60 * 1000,
+        blackTimeMs: 5 * 60 * 1000,
+        lastMoveAt: new Date(),
+      },
+      fen: DEFAULT_POSITION,
     });
 
     const gameId = game._id.toString();

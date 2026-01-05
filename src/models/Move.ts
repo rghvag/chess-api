@@ -18,6 +18,10 @@ const moveSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
+  piece: {
+    type: String,
+    enum: ["p", "k", "q", "r", "b", "n"],
+  },
   from: { type: String, required: true },
   to: { type: String, required: true },
 });

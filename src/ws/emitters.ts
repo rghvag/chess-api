@@ -1,7 +1,7 @@
-import { socketStore } from "./socketStore";
+import { userSockets } from "./store";
 
 export function emitGameStarted(white: string, black: string, gameId: string) {
-  socketStore.get(white)?.send(
+  userSockets.get(white)?.send(
     JSON.stringify({
       color: "white",
       type: "GAME_STARTED",
@@ -9,7 +9,7 @@ export function emitGameStarted(white: string, black: string, gameId: string) {
     })
   );
 
-  socketStore.get(black)?.send(
+  userSockets.get(black)?.send(
     JSON.stringify({
       type: "GAME_STARTED",
       color: "black",

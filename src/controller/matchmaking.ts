@@ -9,6 +9,7 @@ export const joinGame = async (req: any, res: any) => {
       .status(500)
       .json({ error: "Matchmaking queue key not set in env variables" });
   }
+  //TODO:check if already in a game
   //add to queue
   const queue = await redis.lRange(queueKey, 0, -1);
   if (queue.includes(userId)) {

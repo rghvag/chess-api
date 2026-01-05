@@ -33,7 +33,12 @@ const gameSchema = new mongoose.Schema(
     time_control: {
       type: String,
     },
-    fen: { type: String, required: true, default: "start" },
+    fen: { type: String, required: true, default: "" },
+    clock: {
+      whiteTimeMs: { type: Number, required: true },
+      blackTimeMs: { type: Number, required: true },
+      lastMoveAt: { type: Date, required: true },
+    },
     // moves:
     started_at: { type: Date, default: Date.now },
     ended_at: { type: Date },

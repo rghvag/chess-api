@@ -1,11 +1,11 @@
 import express, { Router } from "express";
 import { isAuth } from "../middlewares";
-import { getUserProfile, signin, signup } from "../controller";
+import { userController } from "../controller";
 
 const userRouter: Router = express.Router();
 
-userRouter.post("/signup", signup);
-userRouter.post("/signin", signin);
-userRouter.get("/profile", isAuth, getUserProfile);
+userRouter.post("/signup", userController.signup);
+userRouter.post("/signin", userController.signin);
+userRouter.get("/profile", isAuth, userController.getUserProfile);
 
 export { userRouter };

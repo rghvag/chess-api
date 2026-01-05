@@ -1,4 +1,5 @@
-import { joinGame } from "./matchmaking";
-import { signup, signin, getUserProfile } from "./user";
+import * as userController from "./user";
+import * as matchmakingController from "./matchmaking";
+import * as gameController from "./game";
 
-export { joinGame, signup, signin, getUserProfile };
+export { userController, matchmakingController, gameController };
