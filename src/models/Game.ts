@@ -28,7 +28,7 @@ const gameSchema = new mongoose.Schema(
         "insufficient_material",
         null,
       ],
-      default: "timeout",
+      default: null,
     },
     time_control: {
       type: String,

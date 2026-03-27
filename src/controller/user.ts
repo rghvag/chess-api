@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 import bcrypt from "bcrypt";
 import { User } from "../models/User";
 import jwt from "jsonwebtoken";
+import { getJwtSecret } from "../config/env";
 
 export const signup = async (
   req: Request,
@@ -9,8 +10,6 @@ export const signup = async (
 ): Promise<Response> => {
   try {
     const { email, username, password } = req.body;
-    console.log(email, username, password);
-    //test email & username later
     if (!email || !username || !password) {
       return res
         .status(400)
@@ -22,6 +21,11 @@ export const signup = async (
       return res.status(409).json({ error: "Username already taken" });
     }
 
+    const existingEmail = await User.findOne({ email });
+    if (existingEmail) {
+      return res.status(409).json({ error: "Email already taken" });
+    }
+
     const hashedPassword = await bcrypt.hash(password, 10);
     const user = new User({ email, username, password: hashedPassword });
     await user.save();
@@ -30,7 +34,17 @@ export const signup = async (
     delete userResponse.password;
 
     return res.status(201).json(userResponse);
-  } catch (error) {
+  } catch (error: unknown) {
+    if (
+      typeof error === "object" &&
+      error !== null &&
+      "code" in error &&
+      (error as { code: number }).code === 11000
+    ) {
+      return res
+        .status(409)
+        .json({ error: "Email or username already taken" });
+    }
     console.error("Error creating user:", error);
     return res.status(500).json({ error: "Internal server error" });
   }
@@ -56,13 +70,9 @@ export const signin = async (req: Request, res: Response): Promise<void> => {
       res.status(401).json({ error: "Invalid credentials" });
       return;
     }
-    const token = jwt.sign(
-      { userId: user._id },
-      process.env.JWT_SECRET as string,
-      {
-        expiresIn: "10h",
-      }
-    );
+    const token = jwt.sign({ userId: user._id }, getJwtSecret(), {
+      expiresIn: "10h",
+    });
     res.cookie("token", token, {
       httpOnly: true,
       sameSite: "lax",

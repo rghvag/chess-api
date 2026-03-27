@@ -8,13 +8,14 @@ import { publishDeliveries } from "../pubsub/gameRealtime";
 
 async function getGameById(userId: string, gameId: string) {
   try {
-    //get game
-    const gameDoc = await Game.findById(new mongoose.Types.ObjectId(gameId));
+    if (!mongoose.isValidObjectId(gameId)) {
+      return { error: "Invalid game id" };
+    }
+    const gameDoc = await Game.findById(gameId);
     if (!gameDoc) {
       return { error: "Game not found" };
     }
     const game = gameDoc.toJSON();
-    console.log(game);
 
     const { white, black } = game;
     const opponentColor =
@@ -59,9 +60,19 @@ async function makeMove(ws: AuthedWebSocket, payload: MovePayload) {
     if (!ws.user?.userId) return;
     const { from, to, game_id: gameId, promotion } = payload;
 
+    if (!mongoose.isValidObjectId(gameId)) {
+      ws.send(JSON.stringify({ type: "ERROR", message: "Invalid game id" }));
+      return;
+    }
+
     const game = await Game.findById(gameId);
     if (!game) {
       ws.send(JSON.stringify({ type: "ERROR", message: "Game not found" }));
+      return;
+    }
+
+    if (game.ended_at) {
+      ws.send(JSON.stringify({ type: "ERROR", message: "Game is already over" }));
       return;
     }
 
@@ -86,7 +97,6 @@ async function makeMove(ws: AuthedWebSocket, payload: MovePayload) {
       ws.send(JSON.stringify({ type: "ERROR", message: "Illegal move" }));
       return;
     }
-    console.log("Move made", move);
 
     // handle clock timings
     const now = Date.now();
@@ -101,21 +111,21 @@ async function makeMove(ws: AuthedWebSocket, payload: MovePayload) {
       return;
     }
     if (move.color === "w") {
-      gameClock.whiteTimeMs -= elapsed;
+      gameClock.whiteTimeMs = Math.max(0, gameClock.whiteTimeMs - elapsed);
     } else {
-      gameClock.blackTimeMs -= elapsed;
+      gameClock.blackTimeMs = Math.max(0, gameClock.blackTimeMs - elapsed);
     }
 
     gameClock.lastMoveAt = new Date();
     game.fen = chess.fen();
 
     const moveDoc = new Move({
-      game_id: gameId,
+      game_id: new mongoose.Types.ObjectId(gameId),
       move_number: chess.history().length,
       notation: move.san,
       played_by_color: move.color == "w" ? "white" : "black",
       fen_after: game.fen,
-      peice: move.piece,
+      piece: move.piece,
       from: move.from,
       to: move.to,
     });
@@ -139,7 +149,6 @@ async function makeMove(ws: AuthedWebSocket, payload: MovePayload) {
       }
       game.ended_at = new Date();
     }
-    console.log("updated game state", game);
     await game.save();
 
     const message = {
@@ -171,6 +180,11 @@ async function resign(ws: AuthedWebSocket, payload: ResignPayload) {
   //fetch if game exists and user is part of it
   if (!ws.user?.userId) return;
   const { game_id: gameId } = payload;
+
+  if (!mongoose.isValidObjectId(gameId)) {
+    ws.send(JSON.stringify({ type: "ERROR", message: "Invalid game id" }));
+    return null;
+  }
 
   const game = await Game.findById(gameId);
   if (!game) {

@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from "express";
-import jwt, { JwtPayload, TokenExpiredError } from "jsonwebtoken";
+import jwt from "jsonwebtoken";
 import { AuthUser } from "../types";
+import { getJwtSecret } from "../config/env";
 
 declare module "express-serve-static-core" {
   interface Request {
@@ -18,10 +19,7 @@ export const isAuth = (req: Request, res: Response, next: NextFunction) => {
     if (!token) {
       return res.status(401).json({ message: "Token missing or unauthorized" });
     }
-    const decoded = jwt.verify(
-      token,
-      process.env.JWT_SECRET as string
-    ) as AuthUser;
+    const decoded = jwt.verify(token, getJwtSecret()) as AuthUser;
     req.user = decoded;
     next();
   } catch (error: any) {

@@ -10,7 +10,12 @@ export function initWSServer(server: any) {
   wss.on("connection", (ws: AuthedWebSocket, req) => {
     try {
       authenticateWS(ws, req);
-      userSockets.set(ws.user?.userId || "", ws);
+      const uid = ws.user?.userId;
+      if (!uid) {
+        ws.close();
+        return;
+      }
+      userSockets.set(uid, ws);
     } catch {
       ws.close();
       return;

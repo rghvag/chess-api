@@ -2,10 +2,7 @@ import mongoose from "mongoose";
 
 export const connectMongo = async () => {
   try {
-    const dbURI = process.env.DB_URI || "mongodb://localhost:27017/chess";
-    if (!dbURI) {
-      throw new Error("DB_URI is not defined in environment variables");
-    }
+    const dbURI = process.env.DB_URI ?? "mongodb://localhost:27017/chess";
     await mongoose.connect(dbURI, {
       dbName: process.env?.DB_NAME || "chess",
     });

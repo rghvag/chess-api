@@ -1,14 +1,13 @@
+import "dotenv/config";
 import express from "express";
 import http from "http";
 import { connectMongo } from "./config/mongo";
 import { connectRedis } from "./config/redis";
 import cookieParser from "cookie-parser";
-import dotenv from "dotenv";
 import cors from "cors";
 import router from "./router";
 import { initWSServer } from "./ws/server";
 import { startGameRealtimeSubscriber } from "./pubsub/gameRealtime";
-dotenv.config();
 
 const app = express();
 const server = http.createServer(app);

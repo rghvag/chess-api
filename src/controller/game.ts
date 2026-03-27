@@ -9,7 +9,6 @@ async function game(req: Request, res: Response): Promise<any> {
     error,
     message,
   } = await GameService.getGameById(req.user?.userId || "", gameId);
-  console.log(gameData);
   if (error) {
     return res.status(400).json({ error, message });
   }

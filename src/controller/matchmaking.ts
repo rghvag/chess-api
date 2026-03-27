@@ -22,8 +22,10 @@ export const joinGame = async (req: any, res: any) => {
   await redis.rPush(queueKey, userId);
   console.log(`User ${userId} added to matchmaking queue`);
 
-  makeMatch();
+  try {
+    await makeMatch();
+  } catch (err) {
+    console.error("makeMatch failed:", err);
+  }
   return res.status(200).json({ message: "Joined matchmaking queue." });
 };
-
-module.exports = { joinGame };
