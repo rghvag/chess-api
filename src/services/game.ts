@@ -3,8 +3,8 @@ import { User } from "../models/User";
 import { AuthedWebSocket, MovePayload, ResignPayload } from "../types";
 import { Chess } from "chess.js";
 import { Move } from "../models/Move";
-import { userSockets } from "../ws/store";
 import mongoose from "mongoose";
+import { publishDeliveries } from "../pubsub/gameRealtime";
 
 async function getGameById(userId: string, gameId: string) {
   try {
@@ -142,12 +142,9 @@ async function makeMove(ws: AuthedWebSocket, payload: MovePayload) {
     console.log("updated game state", game);
     await game.save();
 
-    // Broadcast
-    const opponentId = isWhite ? game.black.toString() : game.white.toString();
-
     const message = {
       type: chess.isGameOver() ? "GAME_OVER" : "MOVE_MADE",
-      move: moveDoc,
+      move: moveDoc.toJSON(),
       fen: game.fen,
       turn: chess.turn() === "w" ? "white" : "black",
       clock: {
@@ -156,8 +153,12 @@ async function makeMove(ws: AuthedWebSocket, payload: MovePayload) {
       },
     };
 
-    userSockets.get(opponentId)?.send(JSON.stringify(message));
-    ws.send(JSON.stringify(message));
+    const whiteId = game.white.toString();
+    const blackId = game.black.toString();
+    void publishDeliveries([
+      { userId: whiteId, payload: message },
+      { userId: blackId, payload: message },
+    ]);
   } catch (err) {
     console.error("Error in makeMove:", err);
     ws.send(
@@ -200,15 +201,17 @@ async function resign(ws: AuthedWebSocket, payload: ResignPayload) {
 
   await game.save();
 
-  //broadcast to opponent
-  const opponent = resignedBy === "white" ? game.black : game.white;
   const message = {
     type: "GAME_OVER",
     result: game.result,
     result_reason: game.result_reason,
   };
-  userSockets.get(opponent.toString())?.send(JSON.stringify(message));
-  ws.send(JSON.stringify(message));
+  const whiteId = game.white.toString();
+  const blackId = game.black.toString();
+  void publishDeliveries([
+    { userId: whiteId, payload: message },
+    { userId: blackId, payload: message },
+  ]);
 }
 
 export const GameService = { getGameById, makeMove, resign };

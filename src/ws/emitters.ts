@@ -1,19 +1,14 @@
-import { userSockets } from "./store";
+import { publishDeliveries } from "../pubsub/gameRealtime";
 
 export function emitGameStarted(white: string, black: string, gameId: string) {
-  userSockets.get(white)?.send(
-    JSON.stringify({
-      color: "white",
-      type: "GAME_STARTED",
-      gameId,
-    })
-  );
-
-  userSockets.get(black)?.send(
-    JSON.stringify({
-      type: "GAME_STARTED",
-      color: "black",
-      gameId,
-    })
-  );
+  void publishDeliveries([
+    {
+      userId: white,
+      payload: { color: "white", type: "GAME_STARTED", gameId },
+    },
+    {
+      userId: black,
+      payload: { type: "GAME_STARTED", color: "black", gameId },
+    },
+  ]);
 }

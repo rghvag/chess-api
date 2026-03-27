@@ -7,15 +7,11 @@ import dotenv from "dotenv";
 import cors from "cors";
 import router from "./router";
 import { initWSServer } from "./ws/server";
+import { startGameRealtimeSubscriber } from "./pubsub/gameRealtime";
 dotenv.config();
 
 const app = express();
 const server = http.createServer(app);
-
-(async () => {
-  await connectMongo();
-  await connectRedis();
-})();
 
 app.use(express.json());
 app.use(cookieParser());
@@ -31,7 +27,12 @@ app.use("/api/health", (req, res) => {
 });
 app.use("/api/v1", router);
 
-initWSServer(server);
-server.listen(3000, () =>
-  console.log("WS server running on ws://localhost:3000")
-);
+(async () => {
+  await connectMongo();
+  await connectRedis();
+  await startGameRealtimeSubscriber();
+  initWSServer(server);
+  server.listen(3000, () =>
+    console.log("WS server running on ws://localhost:3000")
+  );
+})();
